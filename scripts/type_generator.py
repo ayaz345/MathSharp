@@ -134,7 +134,7 @@ def format_type(_type):
     _type_scalar = "float" if _type[-1] == "S" else "double"
     _type_underlying = "Vector128<float>" if _type[-1] == "S" else "Vector256<double>"
     _type_underlying_creator = "Vector128" if _type[-1] == "S" else "Vector256"
-    _type_any = "HwVectorAny" + _type[-1]
+    _type_any = f"HwVectorAny{_type[-1]}"
     dims = ["2", "3", "4"]
     _type_dim = _type[-2]
     _other_dims = [dim for dim in dims if dim != _type_dim]
@@ -145,8 +145,8 @@ def format_type(_type):
     _to_string = "<" + (", ".join(["{{Value.GetElement({0})}}".format(i) for i in range(int(_type_dim))])) + ">"
 
     new = ""
+    sv_str = " // SCALAR_VARIANT"
     for line in template.split("\n"):
-        sv_str = " // SCALAR_VARIANT"
         if line.endswith(sv_str):
             line = line.replace(sv_str, "")
 
@@ -157,7 +157,7 @@ def format_type(_type):
             method_ind = line.index("=> ") + len("=> ")
             end_ind = line[method_ind:].index("(") + method_ind
             method = line[method_ind:end_ind]
-            
+
             new += line
             new += "\n"
             new += scalar_variant_template.format(TYPE=_type, 
@@ -167,7 +167,7 @@ def format_type(_type):
                                                   METHOD=method)
         else:
             new += line + "\n"
-    
+
     return new.format(TYPE=_type,
                            TYPE_SCALAR=_type_scalar,
                            TYPE_ANY=_type_any,
@@ -186,8 +186,8 @@ types = ["S", "D"]
 
 for t in types:
     with open(f"raw_hwvector_types_{t}.cs", "w") as f:
-        f.write(format_any_type("HwVectorAny" + t))
-    
+        f.write(format_any_type(f"HwVectorAny{t}"))
+
         for dim in dims:
-            f.write(format_type("HwVector" + dim + t))
+            f.write(format_type(f"HwVector{dim}{t}"))
     
